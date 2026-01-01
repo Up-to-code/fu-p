@@ -1,3 +1,1 @@
-export { default as connectDB } from "./mongoose";
-
-
+export { db } from "./drizzle";

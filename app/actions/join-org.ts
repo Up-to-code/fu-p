@@ -1,24 +1,28 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import User from "@/models/User";
-import connectDB from "@/lib/db/mongoose";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { registry } from "@/lib/registry";
+import { authenticatedAction, handleActionError } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-export async function joinOrganizationAction(organizationId: string) {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session?.user) return; // Should be handled by page, but safety check
-
-    await connectDB();
-    
-    // Update user
-    await User.findByIdAndUpdate(session.user.id, {
-        organizationId: organizationId,
-        role: "member" // Default role
+/**
+ * Join Organization Action
+ * 
+ * Thin wrapper that calls OrganizationMembershipService and handles standardized context/errors.
+ */
+export async function joinOrganizationAction(organizationId: string, role?: string) {
+  try {
+    await authenticatedAction(async (userId) => {
+      await registry.membership.joinOrganization(userId, organizationId, role);
+      revalidatePath("/dashboard");
     });
+  } catch (error) {
+    // Note: redirect() throws a special error that Next.js catches. 
+    // authenticatedAction won't catch it if it's called outside.
+    // But joinOrganization doesn't redirect.
+    return handleActionError(error);
+  }
 
-    revalidatePath("/dashboard");
-    redirect("/dashboard");
+  // Redirect outside try-catch to properly handle NEXT_REDIRECT error
+  redirect("/dashboard");
 }

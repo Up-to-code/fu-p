@@ -43,31 +43,39 @@ export function InviteButton({ slug, orgName }: { slug: string, orgName: string 
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Invite to {orgName}</DialogTitle>
+                    <DialogTitle>Invite Team Member</DialogTitle>
                     <DialogDescription>
-                        Share this link to invite team members to your organization.
+                        Anyone with the link can join <strong>{orgName}</strong>.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex items-center space-x-2">
-                    <div className="grid flex-1 gap-2">
-                        <Label htmlFor="link" className="sr-only">
-                            Link
-                        </Label>
-                        <Input
-                            id="link"
-                            defaultValue={inviteLink}
-                            readOnly
-                        />
+                <div className="flex flex-col gap-4 mt-2">
+                    <div className="space-y-2">
+                        <Label>Invite Link</Label>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                id="link"
+                                value={inviteLink}
+                                readOnly
+                                className="bg-muted/50"
+                            />
+                            <Button type="button" size="icon" onClick={handleCopy} className="shrink-0">
+                                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                        </div>
                     </div>
-                    <Button type="submit" size="sm" className="px-3" onClick={handleCopy}>
-                        <span className="sr-only">Copy</span>
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                </div>
-                <div className="flex justify-center border-t pt-4 mt-2">
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">Or</span>
+                        </div>
+                    </div>
+
                     <Button variant="outline" className="w-full gap-2" onClick={handleEmail}>
                         <Mail className="h-4 w-4" />
-                        Send via Email
+                        Send Invite via Email
                     </Button>
                 </div>
             </DialogContent>

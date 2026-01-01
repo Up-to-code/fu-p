@@ -1,3 +1,5 @@
+import { Globe, TrendingUp, Package } from "lucide-react";
+
 export default function AuthLayout({
   children,
 }: {
@@ -6,35 +8,52 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen flex">
       {/* Left side - Image/Visual */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-background items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="relative z-10 max-w-md text-center space-y-6">
+      <div className="hidden lg:flex lg:w-1/2 bg-muted/30 items-center justify-center p-12 relative overflow-hidden border-r">
+        {/* Abstract Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+
+        <div className="relative z-10 max-w-[420px] space-y-12">
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight">
-              Welcome to{" "}
-              <span className="text-primary">Start Kit</span>
+            <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">
+              Grow with <span className="text-primary">Houses</span>
             </h1>
-            <p className="text-lg text-muted-foreground">
-              Build modern applications faster with our complete starter kit.
-              Get started in minutes, not hours.
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Connect your craftsmanship with thousands of design-conscious buyers.
+              Join the premier marketplace for modern furniture.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4 mt-8">
-            <div className="p-4 rounded-xl bg-card/50 backdrop-blur border">
-              <div className="text-2xl font-bold text-primary">100%</div>
-              <div className="text-sm text-muted-foreground">Open Source</div>
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-background/50 backdrop-blur-sm border shadow-sm transition-all hover:bg-background/80">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Globe className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Marketplace Exposure</h3>
+                <p className="text-sm text-muted-foreground">Reach thousands of active buyers daily</p>
+              </div>
             </div>
-            <div className="p-4 rounded-xl bg-card/50 backdrop-blur border">
-              <div className="text-2xl font-bold text-primary">Fast</div>
-              <div className="text-sm text-muted-foreground">Performance</div>
+
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-background/50 backdrop-blur-sm border shadow-sm transition-all hover:bg-background/80">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Sales Insights</h3>
+                <p className="text-sm text-muted-foreground">Track views, clicks, and conversions</p>
+              </div>
             </div>
-            <div className="p-4 rounded-xl bg-card/50 backdrop-blur border">
-              <div className="text-2xl font-bold text-primary">Secure</div>
-              <div className="text-sm text-muted-foreground">By Default</div>
-            </div>
-            <div className="p-4 rounded-xl bg-card/50 backdrop-blur border">
-              <div className="text-2xl font-bold text-primary">Modern</div>
-              <div className="text-sm text-muted-foreground">Stack</div>
+
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-background/50 backdrop-blur-sm border shadow-sm transition-all hover:bg-background/80">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Package className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Easy Management</h3>
+                <p className="text-sm text-muted-foreground">Effortless catalog and inventory control</p>
+              </div>
             </div>
           </div>
         </div>

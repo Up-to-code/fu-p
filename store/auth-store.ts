@@ -6,6 +6,8 @@ interface User {
   email: string;
   name: string;
   image?: string | null;
+  role?: string;
+  organizationId?: string;
 }
 
 interface Session {
@@ -70,6 +72,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: result.data.user.email,
             name: result.data.user.name,
             image: result.data.user.image || undefined,
+            role: (result.data.user as any).role,
+            organizationId: (result.data.user as any).organizationId,
           },
           session: sessionData.data?.session || null,
           isAuthenticated: true,
@@ -103,6 +107,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: result.data.user.email,
             name: result.data.user.name,
             image: result.data.user.image || undefined,
+            role: (result.data.user as any).role,
+            organizationId: (result.data.user as any).organizationId,
           },
           session: sessionData.data?.session || null,
           isAuthenticated: true,
@@ -164,6 +170,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               email: data.user.email,
               name: data.user.name,
               image: data.user.image || undefined,
+              role: (data.user as any).role,
+              organizationId: (data.user as any).organizationId,
             },
             session: data.session || null,
             isAuthenticated: true,

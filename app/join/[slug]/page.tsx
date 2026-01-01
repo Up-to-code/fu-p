@@ -1,25 +1,27 @@
 import { auth } from "@/lib/auth/config";
+import { organizationRepository } from "@/lib/infrastructure/repositories/organization.repository";
+import { userRepository } from "@/lib/infrastructure/repositories/user.repository";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Organization from "@/models/Organization";
-import User from "@/models/User";
-import connectDB from "@/lib/db/mongoose";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { joinOrganizationAction } from "@/app/actions/join-org";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
-async function getOrgBySlug(slug: string) {
-    await connectDB();
-    const org = await Organization.findOne({ slug });
-    if (!org) return null;
-    return { name: org.name, id: org._id.toString() };
-}
-
-export default async function JoinPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function JoinPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ slug: string }>,
+    searchParams: Promise<{ role?: string }>
+}) {
     const { slug } = await params;
-    const org = await getOrgBySlug(slug);
+    const { role } = await searchParams;
+
+    // Check organization via repository
+    const org = await organizationRepository.findBySlug(slug);
+
     const session = await auth.api.getSession({ headers: await headers() });
 
     if (!org) {
@@ -40,22 +42,21 @@ export default async function JoinPage({ params }: { params: Promise<{ slug: str
 
     if (!session?.user) {
         // Redirect to login with callback
-        redirect(`/login?callbackUrl=/join/${slug}`);
+        redirect(`/login?callbackUrl=/join/${slug}${role ? `?role=${role}` : ''}`);
     }
 
-    // Check if user is already in THIS org or another?
-    // For now, simplify: simple join button. 
-    // Ideally check if already member.
-    await connectDB();
-    const currentUser = await User.findById(session.user.id);
-    const isAlreadyMember = currentUser?.organizationId?.toString() === org.id;
+    // Check if user is already a member via repository
+    const currentUser = await userRepository.findById(session.user.id);
+    const isAlreadyMember = currentUser?.organizationId === org.id;
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-slate-50">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl">Join {org.name}</CardTitle>
-                    <CardDescription>You have been invited to join this organization.</CardDescription>
+                    <CardDescription>
+                        You have been invited to join this organization{role ? ` as a ${role}` : ''}.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4 py-8">
                     <div className="h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -77,7 +78,7 @@ export default async function JoinPage({ params }: { params: Promise<{ slug: str
                     {!isAlreadyMember ? (
                         <form action={async () => {
                             "use server";
-                            await joinOrganizationAction(org.id);
+                            await joinOrganizationAction(org.id, role);
                         }} className="w-full">
                             <Button className="w-full" size="lg">Join Organization</Button>
                         </form>

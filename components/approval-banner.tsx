@@ -35,7 +35,7 @@ export function ApprovalStatusBanner() {
         },
     };
 
-    const current = config[status as keyof typeof config];
+    const current = config[status as keyof typeof config] as any;
     if (!current) return null;
 
     const Icon = current.icon;

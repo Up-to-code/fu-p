@@ -15,6 +15,7 @@ import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Category {
     id: string;
@@ -24,30 +25,24 @@ interface Category {
 }
 
 export function CategoryList({ initialCategories }: { initialCategories: Category[] }) {
-    const [categories, setCategories] = useState(initialCategories);
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-
-    // Note: For full interactivity we should probably use router.refresh() or updated list from server,
-    // but for MVP updating local state + revalidatePath on server is fine. 
-    // Since we are passing initialCategories as prop, we depend on parent re-render or router.refresh()
-    // But inside client component, props don't update automatically unless parent updates.
-    // Best MVP: Reload page or use router.refresh() after action.
-
-    const { useRouter } = require("next/navigation");
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
         const res = await createCategoryAction(name);
         if (res.success) {
             setIsOpen(false);
             setName("");
-            router.refresh(); // Refresh server component
+            router.refresh();
         } else {
-            alert(res.error || "Failed");
+            const errorMsg = (res as any).error || "Failed to create category.";
+            setError(errorMsg);
         }
         setIsLoading(false);
     };
@@ -66,7 +61,7 @@ export function CategoryList({ initialCategories }: { initialCategories: Categor
                     <Plus className="w-4 h-4 mr-2" />
                     Add Category
                 </Button>
-                <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Add New Category">
+                <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setError(null); setName(""); }} title="Add New Category">
                     <form onSubmit={handleCreate} className="space-y-4 mt-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Name</Label>
@@ -77,6 +72,7 @@ export function CategoryList({ initialCategories }: { initialCategories: Categor
                                 placeholder="e.g. Living Room"
                                 required
                             />
+                            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading ? "Creating..." : "Create Category"}

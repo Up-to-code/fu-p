@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from "lucide-react";
 import { useOrgStore } from "@/store/org-store";
 import { Protect } from "@/components/dashboard/protect";
+import { CurrencyDisplay } from "@/components/currency-display";
 
 interface Product {
     id: string;
@@ -57,7 +58,7 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
             status: formData.status as 'draft' | 'active'
         });
 
-        if (res.success) {
+        if ("success" in res && res.success) {
             setIsOpen(false);
             setFormData({
                 name: "",
@@ -69,7 +70,8 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
             });
             router.refresh();
         } else {
-            alert(res.error || "Failed");
+            const error = (res as any).error || "Failed";
+            alert(error);
         }
         setIsLoading(false);
     };
@@ -114,7 +116,7 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="price">Price ($)</Label>
+                                <Label htmlFor="price">Price</Label>
                                 <Input
                                     id="price"
                                     type="number"
@@ -204,7 +206,7 @@ export function ProductList({ initialProducts, categories }: { initialProducts: 
                                 <TableRow key={p.id}>
                                     <TableCell className="font-medium">{p.name}</TableCell>
                                     <TableCell>{p.categoryName}</TableCell>
-                                    <TableCell>${p.price}</TableCell>
+                                    <TableCell><CurrencyDisplay amount={p.price} /></TableCell>
                                     <TableCell>{p.stock}</TableCell>
                                     <TableCell>
                                         <span className={`px-2 py-1 rounded text-xs font-medium ${p.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'

@@ -40,7 +40,8 @@ export function CreateOrgButton({ triggerLabel = "Create Organization" }: { trig
                 setOpen(false);
                 router.refresh();
             } else {
-                setError(result.error || "Failed using that name/slug.");
+                const errorMsg = (result as any).error || "Failed using that name/slug.";
+                setError(errorMsg);
             }
         } catch (error) {
             console.error(error);

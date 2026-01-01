@@ -17,7 +17,11 @@ export function useSlugAvailability(slug: string) {
       setIsValidating(true);
       try {
         const result = await checkSlugAvailability(slug);
-        setIsAvailable(result.success && result.available);
+        if ("success" in result && result.success && "available" in result) {
+          setIsAvailable(result.available as boolean);
+        } else {
+          setIsAvailable(false);
+        }
       } catch (e) {
         setIsAvailable(null);
       } finally {

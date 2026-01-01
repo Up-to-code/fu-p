@@ -1,4 +1,5 @@
 import { getEmployeesAction } from "@/app/actions/employees";
+import { Button } from "@/components/ui/button";
 import { getOrganizationAction } from "@/app/actions/get-organization";
 import { Users } from "lucide-react";
 import { EmptyState } from "@/components/dashboard/empty-state";
@@ -13,12 +14,10 @@ export default async function EmployeesPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
-                {org?.slug && (
-                    <Protect permission="users.invite">
-                        <InviteButton slug={org.slug} orgName={org.name} />
-                    </Protect>
-                )}
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Team</h1>
+                    <p className="text-muted-foreground mt-1">Manage your organization members</p>
+                </div>
             </div>
             <EmployeeList
                 initialEmployees={employees || []}

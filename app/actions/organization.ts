@@ -1,78 +1,28 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import Organization from "@/models/Organization";
-import User from "@/models/User";
-import connectDB from "@/lib/db/mongoose";
-import { headers } from "next/headers";
+import { registry } from "@/lib/registry";
+import { authenticatedAction, handleActionError } from "@/lib/action-context";
 
-const generateSlug = (name: string) => {
-  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  const random = Math.random().toString(36).substring(2, 7);
-  return `${base}-${random}`;
-};
-
+/**
+ * Organization Creation Actions
+ * 
+ * Thin wrappers that call OrganizationCreationService and handle standardized context/errors.
+ */
 export async function createOrganizationAction(name: string, slug?: string) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
+    return await authenticatedAction(async () => {
+      // Fix: Ensure slug is string or undefined, but service might expect string
+      return await registry.orgCreation.createOrganization(name, slug || "");
     });
-
-    if (!session?.user) {
-      return { success: false, error: "Not authenticated" };
-    }
-
-    await connectDB();
-
-    const existingOrg = await Organization.findOne({ ownerId: session.user.id });
-    if (existingOrg) {
-      return { success: false, error: "User already has an organization" };
-    }
-
-    let finalSlug = slug;
-    if (!finalSlug) {
-        finalSlug = generateSlug(name);
-    }
-
-    // Check availability
-    const existingSlug = await Organization.findOne({ slug: finalSlug });
-    if (existingSlug) {
-         return { success: false, error: "Slug is already taken. Please try another one." };
-    }
-
-    const org = await Organization.create({
-      name,
-      slug: finalSlug,
-      ownerId: session.user.id,
-      status: "pending",
-    });
-
-    // Update Owner User
-    await User.findByIdAndUpdate(session.user.id, {
-        organizationId: org._id,
-        role: "owner"
-    });
-
-    return { success: true, organizationId: org._id.toString() };
   } catch (error) {
-    console.error("Create Org Error:", error);
-    return { success: false, error: "Failed to create organization" };
+    return handleActionError(error);
   }
 }
 
 export async function checkSlugAvailability(slug: string) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user) return { success: false, error: "Not authenticated" };
-
-    await connectDB();
-    const existingOrg = await Organization.findOne({ slug });
-    return { success: true, available: !existingOrg };
+    return await registry.orgCreation.checkSlugAvailability(slug);
   } catch (error) {
-    console.error("Check Slug Error:", error);
-    return { success: false, error: "Failed to check slug" };
+    return { success: false, error: "Failed to check slug availability" };
   }
 }

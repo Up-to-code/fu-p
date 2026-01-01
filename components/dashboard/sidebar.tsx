@@ -14,10 +14,14 @@ interface SidebarProps {
   navItems?: NavGroup[];
 }
 
+import { useOrgStore } from "@/store/org-store";
+import { Skeleton } from "@/components/ui/skeleton";
+
 export function Sidebar({ navItems = dashboardNavItems }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { organization, isLoading: isOrgLoading } = useOrgStore();
 
   const handleLogout = async () => {
     await logout();
@@ -31,13 +35,27 @@ export function Sidebar({ navItems = dashboardNavItems }: SidebarProps) {
     .toUpperCase()
     .slice(0, 2) || "U";
 
+  const orgName = organization?.name || "Houses";
+  const orgInitial = orgName.charAt(0).toUpperCase();
+
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-background">
       {/* Logo/Brand */}
       <div className="flex h-16 items-center border-b px-6">
-        <Link href="/dashboard" className="text-xl font-bold flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm">H</div>
-          Houses
+        <Link href="/dashboard" className="text-xl font-bold flex items-center gap-3">
+          {isOrgLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded-xl" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          ) : (
+            <>
+              <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-primary-foreground font-black shadow-sm text-sm">
+                {orgInitial}
+              </div>
+              <span className="tracking-tight truncate max-w-[140px]">{orgName}</span>
+            </>
+          )}
         </Link>
       </div>
 
@@ -46,7 +64,7 @@ export function Sidebar({ navItems = dashboardNavItems }: SidebarProps) {
         {navItems.map((group, groupIndex) => (
           <div key={groupIndex} className="space-y-1">
             {group.title && (
-              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider opacity-70">
                 {group.title}
               </div>
             )}
@@ -59,17 +77,17 @@ export function Sidebar({ navItems = dashboardNavItems }: SidebarProps) {
                   key={item.href}
                   href={item.disabled ? "#" : item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-none"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     item.disabled && "cursor-not-allowed opacity-50"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className={cn("h-4 w-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
                   <span className="flex-1">{item.title}</span>
                   {item.badge && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
                       {item.badge}
                     </span>
                   )}
@@ -77,7 +95,7 @@ export function Sidebar({ navItems = dashboardNavItems }: SidebarProps) {
               );
             })}
             {groupIndex < navItems.length - 1 && (
-              <Separator className="my-4" />
+              <Separator className="my-4 mx-2 w-auto bg-border/40" />
             )}
           </div>
         ))}
@@ -94,7 +112,7 @@ export function Sidebar({ navItems = dashboardNavItems }: SidebarProps) {
             <p className="text-sm font-medium truncate">{user?.name || "User"}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             <p className="text-[10px] uppercase font-bold text-primary mt-1 border border-primary/20 bg-primary/5 rounded px-1.5 py-0.5 inline-block w-fit">
-              {(user as any)?.role || "Viewer"}
+              {user?.role || "Viewer"}
             </p>
           </div>
         </div>

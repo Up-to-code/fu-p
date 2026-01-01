@@ -1,56 +1,44 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import Category from "@/models/Category";
-import Organization from "@/models/Organization";
-import connectDB from "@/lib/db/mongoose";
-import { headers } from "next/headers";
+import { registry } from "@/lib/registry";
 import { revalidatePath } from "next/cache";
+import { withOrg, handleActionError, withPermission } from "@/lib/action-context";
 
-async function getOrgId() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) return null;
-  await connectDB();
-  const org = await Organization.findOne({ ownerId: session.user.id });
-  return org?._id;
-}
-
+/**
+ * Category Actions
+ * 
+ * Thin wrappers that call CategoryService and handle standardized context/errors.
+ */
 export async function getCategoriesAction() {
-  const orgId = await getOrgId();
-  if (!orgId) return [];
-  
-  const categories = await Category.find({ organizationId: orgId }).populate('parentId', 'name');
-  // Serialize manually
-  return categories.map(c => ({
-    id: c._id.toString(),
-    name: c.name,
-    parentId: c.parentId?._id?.toString() || null,
-    parentName: c.parentId?.name || null
-  }));
+  try {
+    return await withPermission("products.view", async ({ orgId }) => {
+      return await registry.categoryService.getCategories(orgId);
+    });
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function createCategoryAction(name: string, parentId?: string | null) {
-  const orgId = await getOrgId();
-  if (!orgId) return { success: false, error: "Unauthorized" };
-
   try {
-    await Category.create({
-      name,
-      parentId: parentId || null,
-      organizationId: orgId
+    return await withPermission("products.create", async ({ orgId }) => {
+      const category = await registry.categoryService.createCategory(orgId, name, parentId);
+      revalidatePath("/dashboard/inventory");
+      return { success: true, data: category };
     });
-    revalidatePath("/dashboard/categories");
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: "Failed to create" };
+  } catch (error) {
+    return handleActionError(error);
   }
 }
 
 export async function deleteCategoryAction(id: string) {
-   const orgId = await getOrgId();
-   if (!orgId) return { success: false, error: "Unauthorized" };
-   
-   await Category.deleteOne({ _id: id, organizationId: orgId });
-   revalidatePath("/dashboard/categories");
-   return { success: true };
+  try {
+    return await withPermission("products.delete", async ({ orgId }) => {
+      await registry.categoryService.deleteCategory(orgId, id);
+      revalidatePath("/dashboard/inventory");
+      return { success: true };
+    });
+  } catch (error) {
+    return handleActionError(error);
+  }
 }

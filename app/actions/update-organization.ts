@@ -1,34 +1,26 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import Organization from "@/models/Organization";
-import connectDB from "@/lib/db/mongoose";
-import { headers } from "next/headers";
+import { registry } from "@/lib/registry";
+import { withPermission, handleActionError } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
 
-export async function updateOrganizationAction(data: { name: string, description?: string, logo?: string }) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) return { success: false, error: "Unauthorized" };
-
-  await connectDB();
-  
+/**
+ * Organization Update Action
+ * 
+ * Thin wrapper that calls OrganizationManagementService and handle standardized context/errors.
+ */
+export async function updateOrganizationAction(data: {
+  name: string;
+  description?: string;
+  logo?: string;
+}) {
   try {
-      await Organization.updateOne(
-          { ownerId: session.user.id },
-          { 
-              name: data.name,
-              // Add description and logo to schema if not present? 
-              // Wait, I defined schema in Step 1. It only had name, ownerId, status.
-              // I need to update schema.
-          }
-      );
-      
-      // I'll update schema implicitly if Mongoose allows strict: false or I need to update model file.
-      // For MVP I will update Model file now.
-      
+    return await withPermission("org.update", async ({ orgId, userId }) => {
+      const result = await registry.orgManagement.updateOrganization(orgId, userId, data);
       revalidatePath("/dashboard/organization");
-      return { success: true };
-  } catch (e) {
-      return { success: false, error: "Failed to update" };
+      return result;
+    });
+  } catch (error) {
+    return handleActionError(error);
   }
 }

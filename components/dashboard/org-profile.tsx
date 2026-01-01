@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export function OrgProfile({ initialData }: { initialData: any }) {
+    const { isOwner } = usePermissions();
     const [name, setName] = useState(initialData?.name || "");
     const [description, setDescription] = useState(initialData?.description || "");
     const [logo, setLogo] = useState(initialData?.logo || "");
@@ -46,8 +48,8 @@ export function OrgProfile({ initialData }: { initialData: any }) {
                         <Label>Approval Status</Label>
                         <div>
                             <span className={`px-2 py-1 rounded text-xs font-medium ${status === 'approved' ? 'bg-green-100 text-green-700' :
-                                    status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                        'bg-yellow-100 text-yellow-700'
+                                status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                    'bg-yellow-100 text-yellow-700'
                                 }`}>
                                 {status.toUpperCase()}
                             </span>
@@ -56,7 +58,12 @@ export function OrgProfile({ initialData }: { initialData: any }) {
 
                     <div className="space-y-2">
                         <Label>Company Name</Label>
-                        <Input value={name} onChange={e => setName(e.target.value)} required />
+                        <Input
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            required
+                            disabled={!isOwner}
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -65,6 +72,7 @@ export function OrgProfile({ initialData }: { initialData: any }) {
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             placeholder="Tell us about your company..."
+                            disabled={!isOwner}
                         />
                     </div>
 
@@ -74,12 +82,15 @@ export function OrgProfile({ initialData }: { initialData: any }) {
                             value={logo}
                             onChange={e => setLogo(e.target.value)}
                             placeholder="https://example.com/logo.png"
+                            disabled={!isOwner}
                         />
                     </div>
 
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Saving..." : "Save Changes"}
-                    </Button>
+                    {isOwner && (
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Saving..." : "Save Changes"}
+                        </Button>
+                    )}
                 </form>
             </CardContent>
         </Card>

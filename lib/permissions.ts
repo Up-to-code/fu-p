@@ -1,6 +1,6 @@
 export type Role = 'owner' | 'admin' | 'manager' | 'viewer';
 
-export type Permission = 
+export type Permission =
   | 'org.update'
   | 'org.delete'
   | 'users.view'
@@ -13,7 +13,8 @@ export type Permission =
   | 'products.edit'
   | 'products.delete'
   | 'orders.view'
-  | 'orders.manage';
+  | 'orders.manage'
+  | 'analytics.view';
 
 type RolePermissions = Record<Role, Permission[]>;
 
@@ -22,23 +23,23 @@ export const ROLES: RolePermissions = {
     'org.update', 'org.delete',
     'users.view', 'users.create', 'users.edit', 'users.delete', 'users.invite',
     'products.view', 'products.create', 'products.edit', 'products.delete',
-    'orders.view', 'orders.manage'
+    'orders.view', 'orders.manage', 'analytics.view'
   ],
   admin: [
-    'org.update',
     'users.view', 'users.create', 'users.edit', 'users.delete', 'users.invite',
     'products.view', 'products.create', 'products.edit', 'products.delete',
-    'orders.view', 'orders.manage'
+    'orders.view', 'orders.manage', 'analytics.view'
   ],
   manager: [
-    'users.view', // Can view but not manage
+    'users.view',
     'products.view', 'products.create', 'products.edit', 'products.delete',
-    'orders.view', 'orders.manage'
+    'orders.view', 'orders.manage', 'analytics.view'
   ],
   viewer: [
     'users.view',
     'products.view',
-    'orders.view'
+    'orders.view',
+    'analytics.view'
   ]
 };
 

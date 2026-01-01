@@ -2,23 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+// Card imports removed
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +26,12 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push("/dashboard");
+      // If there is a callbackUrl (e.g. from invite), redirect there after login
+      if (callbackUrl) {
+        router.push(callbackUrl);
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -41,24 +42,24 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full rounded-xl border bg-card">
-      <CardHeader className="space-y-1 text-center pb-6">
-        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-        <CardDescription className="text-base">
+    <div className="w-full max-w-sm mx-auto space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-muted-foreground">
           Enter your credentials to access your account
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-5">
-          {error && (
-            <Alert variant="destructive" className="rounded-lg">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive" className="rounded-lg">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email address
-            </Label>
+            <Label htmlFor="email">Email address</Label>
             <Input
               id="email"
               type="email"
@@ -67,17 +68,16 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 border-input/60"
+              className="h-12 bg-background/50 border-input hover:border-ring/50 transition-colors"
             />
           </div>
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-primary hover:underline"
+                className="text-sm font-medium text-primary hover:underline underline-offset-4"
               >
                 Forgot?
               </Link>
@@ -90,27 +90,30 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 border-input/60"
+              className="h-12 bg-background/50 border-input hover:border-ring/50 transition-colors"
             />
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4 pt-6">
+        </div>
+
+        <div className="pt-4">
           <Button
             type="submit"
-            className="w-full h-11 text-base font-medium shadow-none"
+            className="w-full h-12 text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Sign in"}
           </Button>
-          <div className="text-sm text-center text-muted-foreground">
+          <div className="mt-4 text-sm text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary font-medium hover:underline">
+            <Link
+              href={callbackUrl ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"}
+              className="text-primary font-medium hover:underline underline-offset-4"
+            >
               Sign up
             </Link>
           </div>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 }
-

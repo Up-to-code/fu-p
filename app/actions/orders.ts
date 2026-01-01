@@ -1,40 +1,33 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import Order from "@/models/Order";
-import Organization from "@/models/Organization";
-import connectDB from "@/lib/db/mongoose";
-import { headers } from "next/headers";
+import { registry } from "@/lib/registry";
+import { withOrg, withPermission, handleActionError } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
 
-async function getOrgId() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) return null;
-  await connectDB();
-  const org = await Organization.findOne({ ownerId: session.user.id });
-  return org?._id;
-}
+/**
+ * Order Actions
+ * 
+ * Thin wrappers that call OrderService and handle standardized context/errors.
+ */
 
 export async function getOrdersAction() {
-  const orgId = await getOrgId();
-  if (!orgId) return [];
-
-  const orders = await Order.find({ organizationId: orgId }).sort({ createdAt: -1 });
-  return orders.map(o => ({
-    id: o._id.toString(),
-    customerName: o.customerName,
-    totalAmount: o.totalAmount,
-    status: o.status,
-    createdAt: o.createdAt.toISOString(),
-    itemCount: o.items.length
-  }));
+  try {
+    return await withPermission("orders.view", async ({ orgId }) => {
+      return await registry.orderService.getOrders(orgId);
+    });
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function updateOrderStatusAction(id: string, status: string) {
-    const orgId = await getOrgId();
-    if (!orgId) return { success: false };
-
-    await Order.updateOne({ _id: id, organizationId: orgId }, { status });
-    revalidatePath("/dashboard/orders");
-    return { success: true };
+  try {
+    return await withPermission('orders.manage', async ({ orgId }) => {
+      await registry.orderService.updateOrderStatus(orgId, id, status);
+      revalidatePath("/dashboard/orders");
+      return { success: true };
+    });
+  } catch (error) {
+    return handleActionError(error);
+  }
 }

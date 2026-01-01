@@ -1,19 +1,10 @@
 import { OrgProfile } from "@/components/dashboard/org-profile";
 import { CreateOrgButton } from "@/components/dashboard/create-org-button";
 import { Building2 } from "lucide-react";
-import { getOrganizationAction } from "@/app/actions/get-organization"; // Need to update this to return description/logo
-// Wait, getOrganizationAction only returned basic fields.
-// I should update it or fetch directly here.
-import { auth } from "@/lib/auth/config";
-import Organization from "@/models/Organization";
-import connectDB from "@/lib/db/mongoose";
-import { headers } from "next/headers";
+import { registry } from "@/lib/registry";
 
 async function getFullOrg() {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session?.user) return null;
-    await connectDB();
-    const org = await Organization.findOne({ ownerId: session.user.id });
+    const org = await registry.organization.getCurrentOrganization();
     if (!org) return null;
 
     return {

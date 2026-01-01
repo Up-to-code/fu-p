@@ -43,7 +43,7 @@ export function UserProfile() {
       </CardHeader>
       <CardContent className="flex items-center gap-4">
         <Avatar className="h-16 w-16">
-          <AvatarImage src={user.image} alt={user.name} />
+          <AvatarImage src={user.image || undefined} alt={user.name} />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <div>
