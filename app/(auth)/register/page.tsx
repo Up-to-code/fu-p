@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 // Card imports removed
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { trackSignUp, trackOrganizationCreated } from "@/lib/analytics";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -100,6 +101,9 @@ export default function RegisterPage() {
     try {
       await signup(email, password, name);
 
+      // Track successful signup
+      trackSignUp('email');
+
       // In invite mode, skip org creation and redirect to join page
       if (isInviteMode) {
         router.push(callbackUrl);
@@ -115,6 +119,11 @@ export default function RegisterPage() {
         console.error("Failed to create organization:", errorMsg);
         setError(errorMsg);
         return;
+      }
+
+      // Track organization creation
+      if (result.success && 'organizationId' in result) {
+        trackOrganizationCreated(result.organizationId);
       }
 
       router.push("/dashboard");

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // Card imports removed
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { trackLogin } from "@/lib/analytics";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,6 +27,10 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+
+      // Track successful login
+      trackLogin('email');
+
       // If there is a callbackUrl (e.g. from invite), redirect there after login
       if (callbackUrl) {
         router.push(callbackUrl);

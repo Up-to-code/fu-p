@@ -25,6 +25,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trackOrderStatusChanged } from "@/lib/analytics";
 
 interface Order {
     id: string;
@@ -80,6 +81,9 @@ export function OrderList({ initialOrders }: { initialOrders: Order[] }) {
         try {
             const result = await updateOrderStatusAction(id, newStatus);
             if (result.success) {
+                // Track order status change
+                trackOrderStatusChanged(id, newStatus);
+
                 toast.success(`Order status updated to ${STATUS_LABELS[newStatus]}`);
                 router.refresh();
             } else if ("error" in result) {
